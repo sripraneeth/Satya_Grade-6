@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Guide App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📚 Study Guide Agent</h1>
+            <div class="header-controls">
+                <button id="progress-btn" class="btn btn-secondary">View Progress</button>
+                <button id="settings-btn" class="btn btn-secondary">Settings</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Sidebar - Subject/Topic Selection -->
+            <aside class="sidebar" id="sidebar">
+                <h2>Subjects</h2>
+                <div id="subjects-list" class="subjects-list">
+                    <div class="loading">Loading subjects...</div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content-area" id="content-area">
+                <!-- Welcome Screen -->
+                <div id="welcome-screen" class="welcome-screen">
+                    <div class="welcome-content">
+                        <h2>Welcome to Study Guide Agent!</h2>
+                        <p>Select a subject and topic from the sidebar to get started.</p>
+                        <div class="features">
+                            <div class="feature">
+                                <div class="feature-icon">📖</div>
+                                <h3>Study Mode</h3>
+                                <p>Read and learn from comprehensive study guides</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">❓</div>
+                                <h3>Quiz Mode</h3>
+                                <p>Test your knowledge with auto-generated questions</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">🎴</div>
+                                <h3>Flashcards</h3>
+                                <p>Quick review with interactive flashcards</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">📊</div>
+                                <h3>Track Progress</h3>
+                                <p>Monitor your learning journey and scores</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Topic View Screen -->
+                <div id="topic-screen" class="topic-screen hidden">
+                    <div class="topic-header">
+                        <h2 id="topic-title">Topic Title</h2>
+                        <div class="topic-actions">
+                            <button id="study-mode-btn" class="btn btn-primary">📖 Study</button>
+                            <button id="quiz-mode-btn" class="btn btn-primary">❓ Quiz</button>
+                            <button id="flashcard-mode-btn" class="btn btn-primary">🎴 Flashcards</button>
+                        </div>
+                    </div>
+                    <div id="topic-content" class="topic-content"></div>
+                </div>
+
+                <!-- Quiz Screen -->
+                <div id="quiz-screen" class="quiz-screen hidden">
+                    <div class="quiz-header">
+                        <h2>Quiz Mode</h2>
+                        <div class="quiz-controls">
+                            <div class="quiz-info">
+                                <span id="quiz-question-counter">Question 1 of 10</span>
+                                <span id="quiz-timer" class="timer hidden">Time: 00:00</span>
+                            </div>
+                            <button id="quit-quiz-btn" class="btn btn-secondary">Exit Quiz</button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Setup -->
+                    <div id="quiz-setup" class="quiz-setup">
+                        <h3>Quiz Settings</h3>
+                        <div class="form-group">
+                            <label>Difficulty:</label>
+                            <select id="quiz-difficulty" class="form-control">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Questions:</label>
+                            <input type="number" id="quiz-count" class="form-control" value="10" min="5" max="20">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="timed-quiz"> Timed Quiz
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Question Generator:</label>
+                            <select id="quiz-generator" class="form-control">
+                                <option value="local">Local (Free)</option>
+                                <option value="openai">OpenAI (Better Quality)</option>
+                                <option value="anthropic">Claude (Best Quality)</option>
+                            </select>
+                            <small id="api-status-message"></small>
+                        </div>
+                        <button id="start-quiz-btn" class="btn btn-primary btn-large">Start Quiz</button>
+                    </div>
+
+                    <!-- Quiz Questions -->
+                    <div id="quiz-questions" class="quiz-questions hidden">
+                        <div class="question-card">
+                            <div class="question-text" id="current-question"></div>
+                            <div class="answer-section">
+                                <textarea id="answer-input" class="form-control" placeholder="Type your answer here..." rows="4"></textarea>
+                            </div>
+                            <div class="question-nav">
+                                <button id="prev-question-btn" class="btn btn-secondary">Previous</button>
+                                <button id="next-question-btn" class="btn btn-primary">Next</button>
+                                <button id="submit-quiz-btn" class="btn btn-success hidden">Submit Quiz</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Results -->
+                    <div id="quiz-results" class="quiz-results hidden">
+                        <h3>Quiz Complete!</h3>
+                        <div class="results-summary">
+                            <div class="score-circle">
+                                <div class="score-value" id="quiz-score">0%</div>
+                                <div class="score-label">Score</div>
+                            </div>
+                            <div class="results-details">
+                                <p><strong>Correct:</strong> <span id="correct-count">0</span></p>
+                                <p><strong>Incorrect:</strong> <span id="incorrect-count">0</span></p>
+                                <p><strong>Time Taken:</strong> <span id="time-taken">0:00</span></p>
+                            </div>
+                        </div>
+                        <div class="results-actions">
+                            <button id="review-answers-btn" class="btn btn-primary">Review Answers</button>
+                            <button id="retake-quiz-btn" class="btn btn-secondary">Retake Quiz</button>
+                            <button id="back-to-topic-btn" class="btn btn-secondary">Back to Topic</button>
+                        </div>
+                        <div id="answer-review" class="answer-review hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Flashcard Screen -->
+                <div id="flashcard-screen" class="flashcard-screen hidden">
+                    <div class="flashcard-header">
+                        <h2>Flashcard Mode</h2>
+                        <div class="flashcard-controls">
+                            <span id="flashcard-counter">Card 1 of 10</span>
+                            <button id="quit-flashcard-btn" class="btn btn-secondary">Exit</button>
+                        </div>
+                    </div>
+
+                    <!-- Flashcard Setup -->
+                    <div id="flashcard-setup" class="flashcard-setup">
+                        <h3>Flashcard Settings</h3>
+                        <div class="form-group">
+                            <label>Generator:</label>
+                            <select id="flashcard-generator" class="form-control">
+                                <option value="local">Local (Free)</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="anthropic">Claude</option>
+                            </select>
+                        </div>
+                        <button id="start-flashcards-btn" class="btn btn-primary btn-large">Start Flashcards</button>
+                    </div>
+
+                    <!-- Flashcard Display -->
+                    <div id="flashcard-display" class="flashcard-display hidden">
+                        <div class="flashcard" id="flashcard">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    <div class="flashcard-content" id="flashcard-front"></div>
+                                    <div class="flashcard-hint">Click to flip</div>
+                                </div>
+                                <div class="flashcard-back">
+                                    <div class="flashcard-content" id="flashcard-back"></div>
+                                    <div class="flashcard-hint">Click to flip</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flashcard-nav">
+                            <button id="prev-flashcard-btn" class="btn btn-secondary">Previous</button>
+                            <button id="next-flashcard-btn" class="btn btn-primary">Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Screen -->
+                <div id="progress-screen" class="progress-screen hidden">
+                    <div class="progress-header">
+                        <h2>Your Progress</h2>
+                        <button id="close-progress-btn" class="btn btn-secondary">Close</button>
+                    </div>
+                    <div class="progress-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-quizzes">0</div>
+                                <div class="stat-label">Quizzes Taken</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="avg-score">0%</div>
+                                <div class="stat-label">Average Score</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-questions">0</div>
+                                <div class="stat-label">Questions Answered</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="study-time">0h</div>
+                                <div class="stat-label">Study Time</div>
+                            </div>
+                        </div>
+                        <div class="progress-sections">
+                            <div class="progress-section">
+                                <h3>Recent Quizzes</h3>
+                                <div id="recent-quizzes" class="quiz-list"></div>
+                            </div>
+                            <div class="progress-section">
+                                <h3>Strengths & Weaknesses</h3>
+                                <div id="strengths-weaknesses"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal for Settings -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" id="close-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Configure your API keys to enable AI-powered question generation.</p>
+                <p class="info-text">API keys are optional. The app works with local generation by default.</p>
+                <div class="form-group">
+                    <label>OpenAI API Key:</label>
+                    <input type="password" id="openai-key" class="form-control" placeholder="sk-...">
+                    <small>Used for GPT-based question generation</small>
+                </div>
+                <div class="form-group">
+                    <label>Anthropic API Key:</label>
+                    <input type="password" id="anthropic-key" class="form-control" placeholder="sk-ant-...">
+                    <small>Used for Claude-based question generation</small>
+                </div>
+                <p class="warning-text">Note: API keys are stored in your browser only and are never sent to our servers except when making API calls to generate questions.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings-btn" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
