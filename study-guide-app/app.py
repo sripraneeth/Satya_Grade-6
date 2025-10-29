@@ -304,12 +304,19 @@ if __name__ == '__main__':
     data_dir = Path(__file__).parent / 'data'
     data_dir.mkdir(exist_ok=True)
 
-    # Run the app
-    print("\n" + "="*60)
-    print("  Study Guide App - Starting Server")
-    print("="*60)
-    print(f"  Access the app at: http://localhost:5000")
-    print(f"  Press CTRL+C to quit")
-    print("="*60 + "\n")
+    # Get port from environment variable (for production) or use 5000 (for local)
+    port = int(os.environ.get('PORT', 5000))
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Check if we're in production (e.g., Render sets PORT env var)
+    is_production = 'PORT' in os.environ
+
+    # Run the app
+    if not is_production:
+        print("\n" + "="*60)
+        print("  Study Guide App - Starting Server")
+        print("="*60)
+        print(f"  Access the app at: http://localhost:{port}")
+        print(f"  Press CTRL+C to quit")
+        print("="*60 + "\n")
+
+    app.run(debug=not is_production, host='0.0.0.0', port=port)
